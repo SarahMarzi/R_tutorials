@@ -1,0 +1,264 @@
+---
+title: "Probability distributions and tests in R"
+author: "Sarah Marzi"
+date: "11 June 2020"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+In this tutorial we will learn about probability distributions in **R**. We will look at probability density functions,  generate random samples under given distributions and plot these. 
+
+We will take a first look at the t-test and conduct a two-sample and one-sample t-test.
+
+
+0. Recap of session 1
+
+1. Birthdays
+
+2. Probability distributions in **R**
+
+3. The binomial distribution
+
+4. The normal distribution
+
+5. A first look at the student sleep data
+
+6. A Welsh two sample t-test
+
+7. A one sample, one-sided t-test
+
+
+
+
+
+
+
+## 0. Recap of session 1
+
+Recall how to get the path to the current working directory and set a new working directory
+
+
+```
+getwd()
+setwd("/path/to/directory")
+```
+
+Do you remember how to assign a vector, query its type, show all objects in the workspace and remove objects from the work space?
+
+
+```{r recap, echo=TRUE, include=TRUE, message=FALSE}
+NewVector <- c(1,2,3)
+NewVector
+class(NewVector)
+ls()
+rm(NewVector)
+```
+
+## 1. Birthdays
+
+To think a little bit more about probability calculations, let's solve this problem: What is the probability of two people in this statistics course having the same birthday?
+
+Conveniently, **R** already has a function for this. It's called *pbirthday()* and for a number of people *N* it gives you the probability of at least two people having the same birthday. Let's see what we get for *N* = 30.
+
+
+```{r birthday, include=TRUE, echo=TRUE}
+ pbirthday(30)
+```
+
+
+## 2. Probability distributions in R
+
+**R** gives you access to a range of different probability distributions, including the binomial distribution, normal distribution, Student t distribution, exponential distribution and many more. Let's use the *help()* function in **R** to get an overview of all the possible available probability distributions in **R**.
+
+
+```{r distr, include=TRUE, echo=TRUE}
+ help(Distributions)
+```
+
+
+As you can see, all probability distributions let you access four different aspects of each distribution:
+
+* **d** returns the *probability density function*
+* **q** gives you access to different *quantiles* of the distribution
+* **p** returns the *cumulative distribution function*
+* **r** is a *random number generator*
+
+Lets start with the simple uniform distribution. Let's use our bus example, in which the waiting time is uniformly distributed between 0 and 15 minutes. The uniform distribution in **R** *unif()* is defined by a minimum and maximum value, here 0 minutes and 15 minutes. Let's look at the probability density of different waiting times:
+
+
+```{r unif, include=TRUE, echo=TRUE}
+dunif(5,min=0,max=15)
+dunif(12,min=0,max=15)
+dunif(3.1265,min=0,max=15)
+dunif(0,min=0,max=15)
+```
+
+
+
+We can see that the probability of the bus arriving in the next 15 minutes is 1. What is the probability of the bus arriving in the next 5 minutes? And how do I get the probability of the bus arriving in between 10 and 12 minutes time?
+
+
+```{r cdf, include=TRUE, echo=TRUE}
+punif(15,min=0, max=15)
+punif(5, min=0, max=15)
+punif(12, min=0, max=15)-punif(10, min=0, max=15)
+```
+
+
+A 95th quantile gives us the time at which the probability of the bus arriving at or before this time is 95%. This works for any quantile number. Let's look at the 50th and 95th quantiles:
+
+
+```{r quantile, include=TRUE, echo=TRUE}
+qunif(0.5,min=0,max=15)
+qunif(0.95,min=0,max=15)
+```
+
+
+Finally, lets generate some random numbers for busses arriving in the next 10 minutes and plot their distribution.
+
+
+```{r random, include=TRUE, echo=TRUE}
+a <- runif(10,min=0,max=15)
+b <- runif(10000,min=0,max=15)
+hist(a)
+hist(b)
+plot(density(a))
+plot(density(b))
+```
+
+## 2. The binomial distribution
+
+The binomial distribution is stored as *binom()* in **R**. As you will recall it is defined by the number of draws *n* and the probability of success *p*. Let's assume we are rolling 100 dice. 
+
+* What is the probability of getting exactly five 6s? The density function is defined as dbinom(x, size=n, prob=p)
+* What is the probability of rolling at most 20 6s?
+* What is the probability of rolling at least 20 6s?
+* What is the minimum number of 6s I can roll with a probability of 40%?
+
+
+```{r bscon, include=TRUE, echo=TRUE}
+dbinom(5, size=100, prob=1/6)
+pbinom(20, size=100, prob=1/6)
+1-pbinom(19, size=100, prob=1/6)
+qbinom(0.4, size=100, prob=1/6)
+```
+
+
+Finally lets generate some random numbers and plot the histogram and distribution. Bear in mind that each result is a number of 6s thrown out of 100 dice. Let's look at the distribution for 10 and 10,000 rounds.
+
+
+```{r outlyx, include=TRUE, echo=TRUE}
+a <- rbinom(10, size=100, prob=1/6)
+b <- rbinom(10000, size=100, prob=1/6)
+hist(a)
+hist(b)
+plot(density(a))
+plot(density(b))
+```
+
+
+## 3. The normal distribution
+
+Let's recall that the normal distribution is defined by two parameters, the mean and the standard deviation (sd). By default **R** will assume the standard normal distribution, with a mean of 0 and sd of 1.
+
+Please answer the following questions:
+
+* In the standard normal distribution, what is the probability density at x=0.5?
+* Where is the highest density observed? What is the density?
+* If instead we set mean=3 and sd=5 (let's call this the norm2 distribution), what is the density at x=0.5?
+* In the standard normal distribution, what is the probability of observing a value of at least 0.5?
+* What about the norm2 distribution?
+* In both distributions what is the 10th and 90th quantile?
+* Is there anything special about these quantiles?
+
+
+```{r normal, include=TRUE, echo=TRUE}
+dnorm(0.5)
+dnorm(0)
+dnorm(0.5, mean=3, sd=5)
+pnorm(0.5)
+pnorm(0.5, mean=3, sd=5)
+qnorm(0.1)
+qnorm(0.9)
+qnorm(0.1, mean=3, sd=5)
+qnorm(0.9, mean=3, sd=5)
+```
+
+
+Finally, let's sample 10,000 normally distributed random numbers from the standard normal and norm2 distributions and plot their histograms and densities. What differences do you see between the two distributions?
+
+
+```{r plotnormal, include=TRUE, echo=TRUE}
+a <- rnorm(10000)
+b <- rnorm(10000, mean=3, sd=5)
+hist(a)
+hist(b)
+plot(density(a))
+plot(density(b))
+```
+
+## 5. A first look at the student sleep data
+
+**R** has a number of different empirical datasets stored in memory. Let's have a look at the so called student sleep data. 20 students were given either sleeping pills (n=10, group2) or a control treatment (n=10, group1) and their increase or decrease in sleep was measured. We are first going to bring the sleep dataset into our current work space and then look at the different variables.
+
+
+```{r sleep, include=TRUE, echo=TRUE}
+sleep <- sleep
+sleep
+summary(sleep$extra)
+```
+
+
+How can I look at the mean sleeping improvement by treatment group?
+```{r mean, include=TRUE, echo=TRUE}
+mean(sleep$extra[sleep$group==1])
+mean(sleep$extra[sleep$group==2])
+```
+
+
+## 6. Welsh two sample t-test
+
+When comparing the sample means of two independent samples with a t-test in **R**, the default test is the Welsh two sample t-test. This test is more robust to violations of the statistical assumptions than the classical Student's t-test. Let's look up some help on the *t.test()* function:
+
+
+```{r welsh, include=TRUE, echo=TRUE}
+help("t.test")
+```
+
+
+We can test for differences in means either with a design formulat (extra~group), or by giving it two separate vectors (sleep times for group 1 and 2). Let's try this out. We will compare the change in sleep time (extra) between the control group (1) and the treatment group (2). Try to interpret all the different outputs of the tests.
+
+* What is the statistic? 
+* What is the P value? 
+* What is the effect size?
+
+
+```{r tt2, include=TRUE, echo=TRUE}
+t.test(sleep$extra~sleep$group)
+t.test(sleep$extra[sleep$group==1], sleep$extra[sleep$group==2])
+```
+
+
+
+## 7. One sample, one-sided t-test
+
+Finally, let's test whether the control group showed a significant increase in sleeping time.
+
+* What is the null hypothesis?
+* What do I mean by a one-sided test?
+
+The theoretical mean is defined by the variable *mu* and we have to set the variable *alternative* to "greater", because we are only interested in whether the sleep times increased (not whether they significantly decreased).
+
+
+```{r final, include=TRUE, echo=TRUE}
+t.test(sleep$extra[sleep$group==2], mu=0, alternative = "greater")
+```
+
