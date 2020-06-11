@@ -242,8 +242,12 @@ We can test for differences in means either with a design formulat (extra~group)
 
 
 ```{r tt2, include=TRUE, echo=TRUE}
+library(ggplot2)
 t.test(sleep$extra~sleep$group)
 t.test(sleep$extra[sleep$group==1], sleep$extra[sleep$group==2])
+ggplot(sleep, aes(x=group, y=extra)) +
+  geom_boxplot() +
+  geom_point()
 ```
 
 
